@@ -5,16 +5,31 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState(null)
 
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    subject: '',
+    message: ''
+  })
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
     setSubmitStatus(null)
     
-    const formData = new FormData(e.target)
-    const data = Object.fromEntries(formData)
+    // 🔍 DEBUG: Check what data we're sending
+    console.log('📋 Sending Data:', formData)
     
     // Basic validation
-    if (!data.fullName || !data.email || !data.subject || !data.message) {
+    if (!formData.fullName || !formData.email || !formData.subject || !formData.message) {
       setSubmitStatus({ type: 'error', message: 'Please fill in all fields' })
       setIsSubmitting(false)
       return
@@ -22,7 +37,7 @@ export default function Contact() {
     
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(data.email)) {
+    if (!emailRegex.test(formData.email)) {
       setSubmitStatus({ type: 'error', message: 'Please enter a valid email address' })
       setIsSubmitting(false)
       return
@@ -34,16 +49,21 @@ export default function Contact() {
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
         {
-          from_name: data.fullName,
-          from_email: data.email,
-          subject: data.subject,
-          message: data.message,
+          name: formData.fullName,
+          email: formData.email,
+          title: formData.subject,
+          message: formData.message,
         },
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       )
       
       setSubmitStatus({ type: 'success', message: 'Thank you for your message! I will get back to you soon.' })
-      e.target.reset()
+      setFormData({
+        fullName: '',
+        email: '',
+        subject: '',
+        message: ''
+      })
     } catch (error) {
       console.error('EmailJS Error:', error)
       setSubmitStatus({ type: 'error', message: 'Failed to send message. Please try again or email me directly.' })
@@ -67,15 +87,15 @@ export default function Contact() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="full-name" className="block text-white font-semibold mb-2">Full Name</label>
-                <input type="text" id="full-name" name="fullName" className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="John Doe" required/>
+                <input type="text" id="full-name" name="fullName" value={formData.fullName} onChange={handleChange} className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="John Doe" required/>
               </div>
               <div>
                 <label htmlFor="email" className="block text-white font-semibold mb-2">Email Address</label>
-                <input type="email" id="email" name="email" className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="john@example.com" required/>
+                <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="john@example.com" required/>
               </div>
               <div>
                 <label htmlFor="subject" className="block text-white font-semibold mb-2">Subject</label>
-                <select id="subject" name="subject" className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" required>
+                <select id="subject" name="subject" value={formData.subject} onChange={handleChange} className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" required>
                   <option value="">Select a topic</option>
                   <option value="job">Job Opportunity</option>
                   <option value="collaboration">Collaboration</option>
@@ -85,7 +105,7 @@ export default function Contact() {
               </div>
               <div>
                 <label htmlFor="message" className="block text-white font-semibold mb-2">Message</label>
-                <textarea id="message" name="message" rows="5" className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none" placeholder="Tell me about your project or just say hello..." required></textarea>
+                <textarea id="message" name="message" rows="5" value={formData.message} onChange={handleChange} className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none" placeholder="Tell me about your project or just say hello..." required></textarea>
               </div>
               {submitStatus && (
                 <div className={`p-4 rounded-xl ${submitStatus.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
